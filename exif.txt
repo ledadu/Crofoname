@@ -1,0 +1,79 @@
+http://www.torry.net/vcl/graphics/jpg/texif.zip
+
+Utilisation dans un programme ou une Unit:
+
+(...)
+uses Exif;
+
+var JPegName:string;
+ExifImage : TExif;
+ImageSource:Tgraphic;
+Tmpbitmap: Tbitmap;
+AFormat: Word;
+AData: THandle;
+APalette: HPALETTE;
+TFF:boolean;
+
+(...)
+begin
+
+(.. affichage des paramètres ..)
+
+JPegName:={nom de fichier photo};
+ExifImage := TExif.Create;
+ExifImage.ReadFromFile(JPegName);
+MessageDlg(
+'Fichier Image: '+JPegName+chr(13)+
+'Appareil: Marque = '+ExifImage.Make+chr(13)+
+' Modèle = '+ExifImage.Model+chr(13)+
+'Version EXIF = '+ExifImage.ExifVersion+chr(13)+
+'Software = '+ ExifImage.Software+chr(13)+
+'Date prise de vue = '+EXIF_DateFormat_to_French_DateFormat(ExifImage.DateTimeOriginal)+chr(13)+
+'Taille (pixel): Largeur = '+ExifImage.ImageWidth+chr(13)+
+' Hauteur = '+ExifImage.ImageHeight+chr(13)+
+'Résolution (dpi): XResol = '+ExifImage.XResol+chr(13)+
+' YResol = '+ExifImage.YResol+chr(13)+
+'Distance mise au point = '+ExifImage.SubjectDistance+chr(13)+
+'Orientation = '+ExifImage.OrientationDesk+chr(13)+
+'Vitesse = '+ExifImage.ExposureTime+chr(13)+
+'Ouverture = '+ExifImage.FNumber+chr(13)+
+'Focale = '+ExifImage.Focallength+chr(13)+
+'ISO = '+ExifImage.ISO+chr(13)+
+'Mode mesure = '+ExifImage.MeteringMode+chr(13)+
+'Mode exposition = '+ExifImage.ExpProg+chr(13)+
+'Type lumière = '+ExifImage.LightSource+chr(13)+
+'Paramètres flash= '+ExifImage.Flash+chr(13)+
+'Thumbnail (vignette): Compression = '+ExifImage.Compression+chr(13)+
+' XResol = '+ExifImage.XResolThumb+chr(13)+
+' YResol = '+ExifImage.YResolThumb+chr(13)+
+' Offset JPEG = '+ExifImage.JPEG_OffsThumb+chr(13)+
+' Taille JPEG = '+ExifImage.JPEG_LengThumb+chr(13)+
+'Commentaires = '+ExifImage.UserComments
+,mtInformation,[mbok],0);
+
+ExifImage.Free;
+
+(...)
+
+(.. récupération de l'imagette dans un Tgraphic ..)
+
+if ReadThumbFromFile(JPegName,Tmpbitmap) then begin
+TFF:=true;
+ImageSource := Tbitmap.Create;
+Tmpbitmap.SaveToClipboardFormat(AFormat,AData,APalette);
+ImageSource.LoadFromClipboardFormat(AFormat,AData,APalette);
+end
+else begin
+{image ne comportant pas de miniature}
+TFF:=false;
+ImageSource := TJPEGImage.Create;
+ImageSource.LoadFromFile(JPegName);
+end;
+
+{ Imagesource contient soit une miniature, soit l'image originale;}
+{ on peut alors charger Imagesource dans un composant Tbitmat en }
+{ spécifiant position (Trect) et dimension, puis en faisant un }
+{ Tbitmap.canvas.strechdraw(Trect, ImageSource) }
+
+ImageSource.Free;
+if TFF then Tmpbitmap.Free;
